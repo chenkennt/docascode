@@ -1,0 +1,3 @@
+```
+@N:SDSearchConsole.Constants
+```
