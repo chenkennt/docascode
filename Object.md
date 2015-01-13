@@ -4,6 +4,13 @@ class: Object
 
 ---
 
+```hello
+pubilc class Foo
+{
+}
+```
+
+
 Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.
 
 To browse the .NET Framework source code for this type, see the [Reference Source][1].
