@@ -4,7 +4,7 @@ class: Object
 
 ---
 
-```hello
+```csharp
 pubilc class Foo
 {
 }
