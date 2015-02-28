@@ -4,9 +4,11 @@ class: Object
 
 ---
 
+[link](http://msdn.com)
 ```csharp
 pubilc class Foo
 {
+[link](http://msdn.com)
 }
 ```
 
