@@ -6,7 +6,6 @@ angular.module('docsApp', [
   'DocsController',
   'versionsData',
   'pagesData',
-  'navData',
   'directives',
   'errors',
   'examples',
@@ -59,10 +58,9 @@ angular.module('DocsController', [])
 
 .controller('DocsController', [
           '$scope', '$http', '$rootScope', '$location', '$window', '$cookies', 'openPlunkr',
-              'NG_PAGES', 'NG_NAVIGATION', 'NG_VERSION',
+              'NG_PAGES', 'NG_VERSION',
   function($scope, $http, $rootScope, $location, $window, $cookies, openPlunkr,
-              NG_PAGES, NG_NAVIGATION, NG_VERSION) {
-  NG_NAVIGATION = {};
+              NG_PAGES, NG_VERSION) {
   $scope.openPlunkr = openPlunkr;
 
   $scope.docsVersion = NG_VERSION.isSnapshot ? 'snapshot' : NG_VERSION.version;
@@ -126,7 +124,7 @@ angular.module('DocsController', [])
         breadcrumbPath += '/';
       });
     } else {
-      $scope.currentArea = NG_NAVIGATION['api'];
+      $scope.currentArea = 'api';
       $scope.breadcrumb = [];
       $scope.partialPath = 'Error404.html';
     }

@@ -4,6 +4,7 @@ type: namespace
 sourceurl: a
 description: Namespace
 remarks: Namespace-MD
+syntax: namespace Namespace2
 itemtypes:
   - name: class
     description: Classes
