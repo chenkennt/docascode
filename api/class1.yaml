@@ -2,13 +2,15 @@ name: class1
 id: class1
 type: class
 source: 
-  remoteUrl: http://to_be_added
-  path: to_be_added
-  line: 10
-remarks:
+  remoteUrl: http://www.github.com/roslyn/class.cs
+  path: class1.cs
+  start_line: 10
+  end_line: 90
+documentation:
   remoteUrl: http://to_be_added # do not contain the markdown file
   path: to_be_added
-  line: 1
+  start_line: 1
+  end_line: 10
   content: remark_add_or_not
 summary: triple slash comments
 syntax:
