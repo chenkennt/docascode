@@ -1,15 +1,26 @@
 name: class1
 id: class1
 type: class
-sourceurl: code_source url to be implemented
-remarksourceurl : markdown_source_to_be_implemented
-description: Class1 description
-remarks: Class1 remarks
+source: 
+  remoteUrl: http://to_be_added
+  path: to_be_added
+  line: 10
+remarks:
+  remoteUrl: http://to_be_added # do not contain the markdown file
+  path: to_be_added
+  line: 1
+  content: remark_add_or_not
+summary: triple slash comments
+syntax:
+  - language: csharp
+    content: public class class1
 inheritence:
   - name: class1.base
-    href: class1.base
+    href: api/class1.base
+    height: 1
   - name: class1.base.base
-    href: class1.base.base
+    href: api/class1.base.base
+    height: 2
 itemtypes:
   - name: method
     description: Methods
@@ -17,14 +28,20 @@ itemtypes:
     description: Constructors
 items:
   - name: method1
-    href: api/method1
+    href: api/class1
     type: method
-    sourceurl: code_source url to be implemented
-    remarksourceurl : markdown_source_to_be_implemented
-    description: Class1 description
-    remarks: Class1 remarks
+    source: 
+      remoteUrl: http://to_be_added
+      path: to_be_added
+      line: 10
+    remarks:
+      remoteUrl: http://to_be_added # do not contain the markdown file
+      path: to_be_added
+      line: 1
+      content: remark_add_or_not
+    summary: triple slash comments
     syntax:
-      - type: csharp
+      - language: csharp
         content: public void method1(int input)
         parameters:
           - name: input
@@ -41,7 +58,22 @@ items:
   - name: ctor1
     href: api/ctor1
     type: constructor
-    sourceurl: code_source url to be implemented
-    remarksourceurl : markdown_source_to_be_implemented
-    description: Class1 description
-    remarks: Class1 remarks
+    source: 
+      remoteUrl: http://to_be_added
+      path: to_be_added
+      line: 10
+    remarks:
+      remoteUrl: http://to_be_added # do not contain the markdown file
+      path: to_be_added
+      line: 1
+      content: remark_add_or_not
+    summary: triple slash comments
+    syntax:
+      - language: csharp
+        content: public class1(int input)
+        parameters:
+          - name: input
+            type: 
+              name: System.int
+              href: http://msdn
+            description: description for input
