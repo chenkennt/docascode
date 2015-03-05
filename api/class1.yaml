@@ -1,29 +1,39 @@
-name: class1
-id: class1
+id: namespace1.class1
+name:
+  csharp: class1
+  cplusplus: class1
+qualifiedName:
+  csharp: namespace1.class1
+  cplusplus: namespace::class1
+parent: namespace1
 type: class
-source: 
+source:
   remoteUrl: http://www.github.com/roslyn/class.cs
   path: class1.cs
-  start_line: 10
-  end_line: 90
+  startLine: 10
+  endLine: 90
 documentation:
   remoteUrl: http://to_be_added # do not contain the markdown file
   path: to_be_added
-  start_line: 1
-  end_line: 10
+  startLine: 1
+  endLine: 10
   content: remark_add_or_not
 summary: triple slash comments
+remarks: some_markdown
 syntax:
   - language: csharp
     content: public class class1
-inheritence:
-  - name: class1.base
-    href: api/class1.base
-    height: 1
-  - name: class1.base.base
+inheritance:
+  - id: class1.base
+    href: api/class1.base # no need? can be calculated?
+    height: 1 # no need?
+  - id: class1.base.base
     href: api/class1.base.base
     height: 2
-itemtypes:
+implements:
+  - interface1
+  - interface2
+itemtypes: # not very useful?
   - name: method
     description: Methods
   - name: constructor
