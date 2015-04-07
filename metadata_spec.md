@@ -29,8 +29,8 @@ Items can be hierarchical. One item can have other items as children. For exampl
 
 Each *item* has one unique identifier (ID) so that it can be referenced by other *items*.
 
-As we're targeting to support multiple languages, we don't have special restrictions about which characters are not allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's better to:
-1. It's not **RECOMMENDED** to have whitespaces in identifier. But resolver **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)
+As we're targeting to support multiple languages, we don't have special restrictions about which characters are not allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's better to:  
+1. It's not **RECOMMENDED** to have whitespaces in identifier. But resolver **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)  
 2. It's not **RECOMMENDED** to have curly braces `{}` in identifier, as they will have special meaning in *item* reference (see 1.4). If these characters have to be used in identifier, escape will be needed in markdown.
 
 Identifier **MUST** be treated as case-sensitive when comparing equality.
