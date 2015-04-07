@@ -6,9 +6,9 @@ Doc-as-Code: Metadata Format Specification
 
 ### 0.1 Terms
 
-The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** (upper case and bold in this document) have exactly the same meaning as they are described in [RFC 2119][1].
+The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** (upper case and bold in this document) have exactly the same meaning as they are defined in [RFC 2119][1].
 
-Words in *italic* imply they are terms defined in earlier section of this document.
+Words in *italic* imply they are terms defined in an earlier section of this document.
 
 ### 0.2 Language Agnostic
 
@@ -19,19 +19,111 @@ Words in *italic* imply they are terms defined in earlier section of this docume
 
 ### 1.1 Items
 
-Item is the basic unit of metadata format. Each item represent a section in your document.
-And it's the minimum unit that you can cross reference inside your documentation.
+Item is the basic unit of metadata format. From documentation perspective, each item represents a "section" in the documentation. This "section" is the minimum unit that you can cross reference to, or customize its layout and content.
 
-For example, in C#, namespaces, classes, methods are all items.
+> When implementing the metadata format for your own language, you can decide which elements are items. For example, usually namespaces, classes, methods are items. But you can also make smaller elements like parameters to be item if you want them to be referencable and customizable.
+
+Items can be hierarchical. One item can have other items as children. For example, in C#, namespaces and classes can have classes and/or methods as children.
+
+### 1.2 Identifiers
+
+Each *item* has one unique identifier (ID) so that it can be referenced by other *items*.
+
+As we're targeting to support multiple languages, we don't have special restrictions about which characters are not allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's better to:
+1. It's not **RECOMMENDED** to have whitespaces in identifier. But resolver **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)
+2. It's not **RECOMMENDED** to have curly braces `{}` in identifier, as they will have special meaning in *item* reference (see 1.4). If these characters have to be used in identifier, escape will be needed in markdown.
+
+Identifier **MUST** be treated as case-sensitive when comparing equality.
+
+### 1.3 Alias
+
+*Identifier* could be very long, which makes it difficult to write by hand in markdown. For example, it's easy to create a long *ID* in C# like this:
+
+```
+System.String.Format(System.IFormatProvider,System.String,System.Object,System.Object)
+```
+
+We can create short alias for *items* so that they can be referenced easily.
+
+Alias is same as *ID*, except:
+1. It doesn't have to be unique.
+2. One *item* can have multiple aliases.
+
+> It's not **RECOMMENDED** to create alias that has nothing to do with item's *ID*. Usually an *item*'s alias is part of its *ID* so it's easy to recognize and memorize.  
+> For example, for the case above, we usually create an alias `System.String.Format()`.
+
+### 1.4 Reference Item by ID and Alias
+We utilize markdown syntax to represent reference to one or more *items*. First we introduce a new markdown syntax to represent *item* reference:
+
+If a string starts with `@`, and followed by a string enclosed by curly braces (`{}`), it will be treated as an *item* reference. The string after inside `{}` is the *ID* or *alias* of the *item*. Here is one example:
+
+```markdown
+@{System.String}
+```
+
+> Markdown processor **MAY** implement some algorithm to allow omit curly braces if *ID* is simple enough. For example, For reference like `@{int}`, we may also want to allow `@int`.
+
+When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using a syntax similar to link in markdown:
+
+```markdown
+[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
+```
+
+Will be rendered to:
+[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
+
+We use curly braces as the separator as it hardly appears in identifiers in most programming languages. As we said before, if you really want to use them, you have to escape them manually.
+
+> In many programming languages, there is a concept of "template instantiation". For example, in C#, you can create a new type `List<int>` from `List<T>` with argument `int`. It's not **RECOMMENDED** to create *items* for "template instances". Instead, you can reference to them using markdown. For example, in this case, ``[List](@{List`1})<@{int}>``.
+
+### 1.5 Reference Item by Short ID and Alias
+**OPTIONAL**
+
+### 1.6 Item Template ??
+**OPTIONAL**
+
+2. File Layout
+--------------
+
+
+
+
+
+```yaml
+- id: System.Collections.Generic.Dictionary`2
+  shortId: Dictionary`2
+  alias:
+  - Dictionary
+  templateParameters:
+  - TKey
+  - TValue
+  name.csharp: Dictionary<TKey, TValue>
+  name.vb: Dictionary(Of TKey, TValue)
+  fullName.csharp: System.Collections.Generic.Dictionary<{0}, {1}>
+  fullName.vb: System.Collections.Generic.Dictionary(Of {0}, {1})
+  documentation:
+
+
+  
+
+System.Collections.Generic.Dictionary`2{System.String,System.String}
+
+==>
+
+```
+
+[Dictionary](@Dictionary`2)<[String](@String), [String](@String)>
+
+`array{int}`
+Identifier uniquely identifies 
 
 ### 1.2 Scopes
 
-*Items* can be hierarchical. One *item* can have other *items* as children.
-For example, in C#, namespaces and classes are scopes, as they can have child classes and/or methods.
+
 
 *Items* with children are called **scopes**.
 
-> Essentially all *items* are scopes. Just in different programming languages some cannot have children.  
+> Essentially all *items* are scopes. Just in different programming languages some cannot have children.
 
 There are two special scopes:
 1. For an item, its parent is called "local scope".
@@ -43,7 +135,7 @@ Identifier (ID) is the name of *items*. For one item, its ID is unique under *lo
 
 There is no special rules that which characters are valid in identifier, except for whitespaces.
 Whitespaces are allowed in identifiers, but they **MUST** be normalized before comparing equality:
-1. If whitespaces is connecting two "word" characters, replace them with a single space (word character is defined by regex `[A-Za-z0-9_]`).
+1. If whitespaces are connecting two "word" characters, replace them with a single space (word character is defined by regex `[A-Za-z0-9_]`).
 2. Otherwise remove the whitespaces.
 
 For example, the following IDs are the same:
@@ -63,24 +155,6 @@ Valid separators are `.`, `:`, `/` and `\`.
 For example, an *item* `ToString()` is under *scope* `Object`, which is under *scope* `System`, then its *UID* is `System.Object.ToString()`.
 
 > Given the above definition, an *item*'s UID **MUST** starts with the UID of its *scope*. This is useful to quickly determine whether an *item* is under a certain scope.
-
-### 1.5 Alias
-
-Given *ID* may be very long, especially in languages with function overloads, a function's *ID* usually consists of the function name, and the *UIDs* of all its parameters.
-
-We can create short alias for *items* so that they can be referenced easily.
-
-Alias is similar to *ID*, just they don't have to be unique in *local scope*, multiple *items* can have the same alias.
-When reolving alias, it's up to the resolver to return all *items* with the same alias or just one of them.
-
-A local alias can be easily converted to a global one by replacing the *ID* part in *UID* with alias.
-
-One useful scenario for alias is function overload. For example, a function's *ID* may look like this:
-```
-Format(System.IFormatProvider,System.String,System.Object,System.Object)
-```
-It will be too long if user wants to use this reference the function.
-Usually user may want to reference a function using its name. To achieve this, we can create an alias for this function using its name only: `Format()`.
 
 ### 1.6 Reference Item by ID, UID and Alias
 
