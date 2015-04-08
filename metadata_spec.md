@@ -27,20 +27,28 @@ Items can be hierarchical. One item can have other items as children. For exampl
 
 ### 1.2 Identifiers
 
-Each *item* has one unique identifier (ID) so that it can be referenced by other *items*.
+Each *item* has an identifier (ID) which is unique under it's parent.
 
-As we're targeting to support multiple languages, we don't have special restrictions about which characters are not allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's better to:  
-1. It's not **RECOMMENDED** to have whitespaces in identifier. But resolver **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)  
-2. It's not **RECOMMENDED** to have curly braces `{}` in identifier, as they will have special meaning in *item* reference (see 1.4). If these characters have to be used in identifier, escape will be needed in markdown.
+As we're targeting to support multiple languages, there is no special restrictions about which characters are allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's not **RECOMMENDED** to have whitespaces in identifier. Markdown processor **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)
 
 Identifier **MUST** be treated as case-sensitive when comparing equality.
+
+Each *item* has a unique identifier (UID) which is globally unique. UID is defined as follows:
+1. If an *item* does not have parent, its UID is its ID.
+2. Otherwise its UID is the combination of the UID of its parent, a separator and the ID of the *item* itself.
+
+Valid separators are `.`, `:`, `/` and `\`.
+
+For example, for a class `String` under namespace `System`, its ID is `String` and UID is `System.String`.
+
+> Given the above definition, an *item*'s UID **MUST** starts with the UID of its parent (and any ancestor) and ends with the ID of itself. This is useful to quickly determine whether an *item* is under another item.
 
 ### 1.3 Alias
 
 *Identifier* could be very long, which makes it difficult to write by hand in markdown. For example, it's easy to create a long *ID* in C# like this:
 
-```
-System.String.Format(System.IFormatProvider,System.String,System.Object,System.Object)
+```markdown
+Format(System.IFormatProvider,System.String,System.Object,System.Object)
 ```
 
 We can create short alias for *items* so that they can be referenced easily.
@@ -50,20 +58,25 @@ Alias is same as *ID*, except:
 2. One *item* can have multiple aliases.
 
 > It's not **RECOMMENDED** to create alias that has nothing to do with item's *ID*. Usually an *item*'s alias is part of its *ID* so it's easy to recognize and memorize.  
-> For example, for the case above, we usually create an alias `System.String.Format()`.
+> For example, for the case above, we usually create an alias `Format()`.
 
-### 1.4 Reference Item by ID and Alias
+We can easily create a "global" alias for an *item* by replacing the *ID* part of its *UID* with its alias.
+
+### 1.4 Reference Item by Identifier and Alias
+
 We utilize markdown syntax to represent reference to one or more *items*. First we introduce a new markdown syntax to represent *item* reference:
 
-If a string starts with `@`, and followed by a string enclosed by curly braces (`{}`), it will be treated as an *item* reference. The string after inside `{}` is the *ID* or *alias* of the *item*. Here is one example:
+If a string starts with `@`, and followed by a string enclosed by curly braces `{}`, it will be treated as an *item* reference. The string inside `{}` is the *UID* of the *item*. Here is one example:
 
 ```markdown
 @{System.String}
 ```
 
+*UID* can be enclosed by multiple curly braces, but the number of `{` and `}` should match, for example, `@{{System.String}}` is also a valid reference. By doing this, we can allow curly braces inside *UID*.
+
 > Markdown processor **MAY** implement some algorithm to allow omit curly braces if *ID* is simple enough. For example, For reference like `@{int}`, we may also want to allow `@int`.
 
-When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using a syntax similar to link in markdown:
+When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using the standard link syntax of markdown:
 
 ```markdown
 [Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
@@ -76,85 +89,127 @@ We use curly braces as the separator as it hardly appears in identifiers in most
 
 > In many programming languages, there is a concept of "template instantiation". For example, in C#, you can create a new type `List<int>` from `List<T>` with argument `int`. It's not **RECOMMENDED** to create *items* for "template instances". Instead, you can reference to them using markdown. For example, in this case, ``[List](@{List`1})<@{int}>``.
 
-### 1.5 Reference Item by Short ID and Alias
-**OPTIONAL**
+Besides *UID*, we also allow reference item using *ID* and *alias*, in markdown processor, the following algorithm **SHOULD** be implemented to resolve references:
+1. Check whether the reference matches any *identifier* of current *item*'s children.
+2. Check whether the reference matches any *alias* of current *item*'s children.
+3. Check whether the reference matches any *identifier* of current *item*'s silbings
+4. Check whether the reference matches any *alias* of current *item*'s silbings
+5. Check whether the reference matches a *UID*.
+6. Check whether the reference matches a *global alias*.
 
-### 1.6 Item Template ??
-**OPTIONAL**
+2. File Structure
+-----------------
 
-2. File Layout
---------------
+### 2.1 File Format
 
+You can use any file format that can represent structural data to store metadata. But we recommend to use [YAML][2] or [JSON][3]. In this specification, we use YAML in examples, but all YAML can be converted to JSON easily.
 
+### 2.2 File Layout
 
+A metadata file consists of a list of *item* objects. Each object is a key-value pair (hereafter referred to as "property") list.
 
+Though *items* can be hierarchical, they are in a flat layout in file. Instead, each *item* has an "children" property indicates its children and a "parent" property indicates its parent.
+
+An *item* object has some basic properties:
+
+Property   | Description                                      
+-----------|-------------------------------------------------
+uid        | **REQUIRED**. The unique identifier of the item. 
+children   | **OPTIONAL**. A list of *UIDs* of the *item*'s children. Can be omitted if there is no children.
+parent     | **OPTIONAL**. The *UID* of the parent of the **item**. If omitted, parser will try to figure out its parent from the children information of other *items* within the same file.
+isExternal | **OPTIONAL**. If true, it means this *item* only serves as a reference by other *items* in the same file. Default value is false.
+
+Here is an example of a YAML format metadata file for C# Object class:
 
 ```yaml
-- id: System.Collections.Generic.Dictionary`2
-  shortId: Dictionary`2
+- uid: System.Object
+  parent: System
+  children:
+  - System.Object.Object()
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.Finalize()
+  - System.Object.GetHashCode()
+  - System.Object.GetType()
+  - System.Object.MemberwiseClone()
+  - System.Object.ReferenceEquals()
+  - System.Object.ToString()
+- uid: System.Object.Object()
+  parent: System.Object
+- uid: System.Object.Equals(System.Object)
+  parent: System.Object
+- uid: System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+- uid: System.Object.Finalize()
+  parent: System.Object
+- uid: System.Object.GetHashCode()
+  parent: System.Object
+- uid: System.Object.GetType()
+  parent: System.Object
+- uid: System.Object.MemberwiseClone()
+  parent: System.Object
+- uid: System.Object.ReferenceEquals()
+  parent: System.Object
+- uid: System.Object.ToString()
+  parent: System.Object
+- uid: System
+  isExternal: true
+```
+
+> It's **RECOMMENDED** to include referenced *items* in the same file as externals. This makes the file self contained and easy to render at runtime. External *items* doesn't need to have all properties, it just contains some necessary properties for rendering the documentation.
+
+> *Items* **SHOULD** be organized based on how they will be displayed in documentation. For example, if you want all members of a class displayed in a single page, put all of them in a single metadata file.
+
+### 2.3 Item Object
+In additional to the *properties* listed in last section, *item object* also has some **OPTIONAL** *properties*:
+
+Property | Description
+---------|-----------------------------------
+id       | The *identifier* of the *item*.
+alias    | A list of *aliases* of the *item*.
+name     | The display name of the *item*.
+fullName | The full display name of the *item*. In programming languages, it's usually the full qualified name.
+type     | The type of the *item*, like class, method, etc.
+url      | If it's a relative url, it points to another metadata file that defines the *item*. If it's an absolute url, it means the *item* is coming from an external library, and the url is the documentation page of this *item*. If omitted, the url is the location of the current file.
+source   | The source code information of the *item*. It's an object which contains following properties:<br>1. repo: the remote git repository of the source code.<br>2. branch: the branch of the source code.<br>3. revision: the git revision of the source code.<br>4. path: the path of the source code file where the *item* is defined.<br>5. startLine: the start line of the *item* definition.<br>6. endLine: the end line of the *item* definition.
+
+Here is an example of a C# Dictionary class:
+
+```yaml
+- uid: System.Collections.Generic.Dictionary`2
+  id: Dictionary`2
   alias:
   - Dictionary
-  templateParameters:
-  - TKey
-  - TValue
+  parent: System.Collections.Generic
+  name: Dictionary<TKey, TValue>
+  fullName: System.Collections.Generic.Dictionary<TKey, TValue>
+  type: method
+  url: System.Collections.Generic.Dictionary`2.yml
+  source:
+    repo: https://github.com/dotnet/netfx.git
+    branch: master
+    revision: 5ed47001acfb284a301260271f7d36d2bb014432
+    path: src/system/collections/generic/dictionary.cs
+    startLine: 1
+    endLine: 100
+```
+
+### 2.4 Custom Properties
+
+3. Multiple Language Support
+----------------------------
+
+
+```
   name.csharp: Dictionary<TKey, TValue>
   name.vb: Dictionary(Of TKey, TValue)
   fullName.csharp: System.Collections.Generic.Dictionary<{0}, {1}>
   fullName.vb: System.Collections.Generic.Dictionary(Of {0}, {1})
   documentation:
-
-
+```
   
 
-System.Collections.Generic.Dictionary`2{System.String,System.String}
 
-==>
-
-```
-
-[Dictionary](@Dictionary`2)<[String](@String), [String](@String)>
-
-`array{int}`
-Identifier uniquely identifies 
-
-### 1.2 Scopes
-
-
-
-*Items* with children are called **scopes**.
-
-> Essentially all *items* are scopes. Just in different programming languages some cannot have children.
-
-There are two special scopes:
-1. For an item, its parent is called "local scope".
-2. Global scope is a logical concept that contains all top-level items.
-
-### 1.3 Identifiers (ID)
-
-Identifier (ID) is the name of *items*. For one item, its ID is unique under *local scope*.
-
-There is no special rules that which characters are valid in identifier, except for whitespaces.
-Whitespaces are allowed in identifiers, but they **MUST** be normalized before comparing equality:
-1. If whitespaces are connecting two "word" characters, replace them with a single space (word character is defined by regex `[A-Za-z0-9_]`).
-2. Otherwise remove the whitespaces.
-
-For example, the following IDs are the same:
-1. `Equals (string, string)` and `Equals(string,string)`
-2. `operator int()` and `operator  int( )`
-
-### 1.4 Unique Identifiers (UID)
-
-*Identifier* is only unique under *local scope*, while unique identifier (QID) is unique under *global scope*.
-
-For an *item*, its UID is generated by concatenating the *ID* of the *item* itself, its parent *scope*, and all its ancestor *scopes*, separated by characters called "separator".
-
-Or we can use a recursive definition: an *item*'s UID is generated by concatenating the UID of its parent *scope*, a separator and the *ID* of the *item* itself.
-
-Valid separators are `.`, `:`, `/` and `\`.
-
-For example, an *item* `ToString()` is under *scope* `Object`, which is under *scope* `System`, then its *UID* is `System.Object.ToString()`.
-
-> Given the above definition, an *item*'s UID **MUST** starts with the UID of its *scope*. This is useful to quickly determine whether an *item* is under a certain scope.
 
 ### 1.6 Reference Item by ID, UID and Alias
 
@@ -215,3 +270,5 @@ For example:
 
 
 [1]: https://www.ietf.org/rfc/rfc2119.txt
+[2]: http://www.yaml.org/
+[3]: http://www.json.org/
