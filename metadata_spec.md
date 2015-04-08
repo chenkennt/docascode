@@ -1,18 +1,16 @@
 Doc-as-Code: Metadata Format Specification
 ==========================================
 
-0. Design Notes
+0. Introduction
 ---------------
 
-### 0.1 Terms
+### 0.1 Goals and Non-goals
+
+### 0.2 Terminology
 
 The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** (upper case and bold in this document) have exactly the same meaning as they are defined in [RFC 2119][1].
 
 Words in *italic* imply they are terms defined in an earlier section of this document.
-
-### 0.2 Language Agnostic
-
-// TODO
 
 1. Items and Identifiers
 ------------------------
