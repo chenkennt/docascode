@@ -112,9 +112,9 @@ An *item* object has some basic properties:
 
 Property   | Description                                      
 -----------|-------------------------------------------------
-uid        | **REQUIRED**. The unique identifier of the item. 
+uid        | **REQUIRED**. The *unique identifier* of the *item*.
 children   | **OPTIONAL**. A list of *UIDs* of the *item*'s children. Can be omitted if there is no children.
-parent     | **OPTIONAL**. The *UID* of the parent of the **item**. If omitted, parser will try to figure out its parent from the children information of other *items* within the same file.
+parent     | **OPTIONAL**. The *UID* of the parent of the *item*. If omitted, parser will try to figure out its parent from the children information of other *items* within the same file.
 isExternal | **OPTIONAL**. If true, it means this *item* only serves as a reference by other *items* in the same file. Default value is false.
 
 Here is an example of a YAML format metadata file for C# Object class:
