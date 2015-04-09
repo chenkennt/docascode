@@ -8,7 +8,8 @@ Doc-as-Code: Metadata Format Specification
 
 ### 0.2 Terminology
 
-The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** (upper case and bold in this document) have exactly the same meaning as they are defined in [RFC 2119][1].
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**,  **MAY**, and **OPTIONAL** in this document are to be interpreted as described in [RFC 2119][1].
 
 Words in *italic* imply they are terms defined in an earlier section of this document.
 
@@ -58,42 +59,7 @@ Alias is same as *ID*, except:
 > It's not **RECOMMENDED** to create alias that has nothing to do with item's *ID*. Usually an *item*'s alias is part of its *ID* so it's easy to recognize and memorize.  
 > For example, for the case above, we usually create an alias `Format()`.
 
-We can easily create a "global" alias for an *item* by replacing the *ID* part of its *UID* with its alias.
-
-### 1.4 Reference Item by Identifier and Alias
-
-We utilize markdown syntax to represent reference to one or more *items*. First we introduce a new markdown syntax to represent *item* reference:
-
-If a string starts with `@`, and followed by a string enclosed by curly braces `{}`, it will be treated as an *item* reference. The string inside `{}` is the *UID* of the *item*. Here is one example:
-
-```markdown
-@{System.String}
-```
-
-*UID* can be enclosed by multiple curly braces, but the number of `{` and `}` should match, for example, `@{{System.String}}` is also a valid reference. By doing this, we can allow curly braces inside *UID*.
-
-> Markdown processor **MAY** implement some algorithm to allow omit curly braces if *ID* is simple enough. For example, For reference like `@{int}`, we may also want to allow `@int`.
-
-When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using the standard link syntax of markdown:
-
-```markdown
-[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
-```
-
-Will be rendered to:
-[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
-
-We use curly braces as the separator as it hardly appears in identifiers in most programming languages. As we said before, if you really want to use them, you have to escape them manually.
-
-> In many programming languages, there is a concept of "template instantiation". For example, in C#, you can create a new type `List<int>` from `List<T>` with argument `int`. It's not **RECOMMENDED** to create *items* for "template instances". Instead, you can reference to them using markdown. For example, in this case, ``[List](@{List`1})<@{int}>``.
-
-Besides *UID*, we also allow reference item using *ID* and *alias*, in markdown processor, the following algorithm **SHOULD** be implemented to resolve references:
-1. Check whether the reference matches any *identifier* of current *item*'s children.
-2. Check whether the reference matches any *alias* of current *item*'s children.
-3. Check whether the reference matches any *identifier* of current *item*'s silbings
-4. Check whether the reference matches any *alias* of current *item*'s silbings
-5. Check whether the reference matches a *UID*.
-6. Check whether the reference matches a *global alias*.
+We can easily get a "global" alias for an *item* by replacing the *ID* part of its *UID* with its alias.
 
 2. File Structure
 -----------------
@@ -104,9 +70,11 @@ You can use any file format that can represent structural data to store metadata
 
 ### 2.2 File Layout
 
-A metadata file consists of a list of *item* objects. Each object is a key-value pair (hereafter referred to as "property") list.
+A metadata file consists of two parts, an "item" section and a "reference" section. Each section is a list of objects and each object is a key-value pair (hereafter referred to as "property") list that represents an *item*.
 
-Though *items* can be hierarchical, they are in a flat layout in file. Instead, each *item* has an "children" property indicates its children and a "parent" property indicates its parent.
+### 2.3 Item Section
+
+Though *items* can be hierarchical, they are be flat in item section. Instead, each *item* has an "children" property indicates its children and a "parent" property indicates its parent.
 
 An *item* object has some basic properties:
 
@@ -115,11 +83,11 @@ Property   | Description
 uid        | **REQUIRED**. The *unique identifier* of the *item*.
 children   | **OPTIONAL**. A list of *UIDs* of the *item*'s children. Can be omitted if there is no children.
 parent     | **OPTIONAL**. The *UID* of the parent of the *item*. If omitted, parser will try to figure out its parent from the children information of other *items* within the same file.
-isExternal | **OPTIONAL**. If true, it means this *item* only serves as a reference by other *items* in the same file. Default value is false.
 
 Here is an example of a YAML format metadata file for C# Object class:
 
 ```yaml
+items:
 - uid: System.Object
   parent: System
   children:
@@ -150,11 +118,9 @@ Here is an example of a YAML format metadata file for C# Object class:
   parent: System.Object
 - uid: System.Object.ToString()
   parent: System.Object
-- uid: System
-  isExternal: true
+references:
+...
 ```
-
-> It's **RECOMMENDED** to include referenced *items* in the same file as externals. This makes the file self contained and easy to render at runtime. External *items* doesn't need to have all properties, it just contains some necessary properties for rendering the documentation.
 
 > *Items* **SHOULD** be organized based on how they will be displayed in documentation. For example, if you want all members of a class displayed in a single page, put all of them in a single metadata file.
 
@@ -181,7 +147,7 @@ Here is an example of a C# Dictionary class:
   parent: System.Collections.Generic
   name: Dictionary<TKey, TValue>
   fullName: System.Collections.Generic.Dictionary<TKey, TValue>
-  type: method
+  type: class
   url: System.Collections.Generic.Dictionary`2.yml
   source:
     repo: https://github.com/dotnet/netfx.git
@@ -193,79 +159,86 @@ Here is an example of a C# Dictionary class:
 ```
 
 ### 2.4 Custom Properties
+Besides the predefined *properties*, *item* can have its own *properties*. One restriction is *property* name **MUST NOT** contains dots, as dot in *property* name will have special meaning (described in later section).
 
-3. Multiple Language Support
-----------------------------
+### 2.5 Reference Section
 
+Reference section also contains a list of *items*, but these *items* only serve as the references by *items* in *item section* and won't show up as section in documentation. Also Reference *item* doesn't need to have full *properties*, it just contains some necessary information as a reference, for example, name or url.
 
+In metadata file, all *items* **MUST** be referenced by *UID*.
+
+> It's **RECOMMENDED** to include all referenced *items* in the same file in reference section. This makes the file self contained and easy to render at runtime.
+
+> Many programming languages has the concept of "template instantiation". For example, in C#, you can create a new type `List<int>` from `List<T>` with argument `int`. You can create a reference for "template instances". For example, for a class inherited from `List<int>`:
+
+```yaml
+items:
+- uid: NumberList
+  inherits:
+  - System.Collections.Generic.List<System.Int32>
+references:
+- uid: System.Collections.Generic.List`1<System.Int32>
+  link: @{System.Collections.Generic.List`1}<@{System.Int32}>
+- uid: System.Collections.Generic.List`1
+  name: List
+  url: system.collections.generic.list`1.yml
+- uid: System.Int32
+  name: int
+  url: system.int32.yml
 ```
+
+### 2.6 Multiple Language Support
+There may be a need that an *item* supports multiple languages. For example, in .NET, a class can be used in C#, VB, managed C++ and F#. Different languages may have differences in *properties*. For example, a list of string is displayed as `List<string>` int C#, while `List(Of string)` in VB.
+
+To support this scenario, we introduced a concept of language context to allow define different *property* values in different languages.
+
+If a *property* name is in the form of `property_name.language_name`, it defines the value of `property_name` under `language_name`. For example:
+
+```yaml
+- uid: System.Collections.Generic.Dictionary`2
   name.csharp: Dictionary<TKey, TValue>
   name.vb: Dictionary(Of TKey, TValue)
-  fullName.csharp: System.Collections.Generic.Dictionary<{0}, {1}>
-  fullName.vb: System.Collections.Generic.Dictionary(Of {0}, {1})
-  documentation:
-```
-  
-
-
-
-### 1.6 Reference Item by ID, UID and Alias
-
-*ID*, *UID* and *alias* are designed to 
-
-### Overload
-Overload is a group of *items* which have the same *ID* under a *scope*. This is a common concept in many programming languages.
-For example, in C#, function `Equals()` may have the following overloads:
-```csharp
-bool Equals(object);
-bool Equals(string);
-bool Equals(string, string);
-bool Equals(string, StringComparison);
-bool Equals(string, string, StringComparison);
 ```
 
-All these methods will have the same *ID*, but with an overload section to distinguish between different overloads.
-Overload section **MUST** be surrounded by overload separator.
+This means the name of the dictionary is `Dictionary<TKey, TValue>` in C# and `Dictionary(Of TKey, TValue)` in VB.
 
-Valid overload separator are `()`, `[]` and `{}`.
+The following *properties* **SHALL NOT** be overridden in language context: uid, id, alias, children, parent.
 
-Overload section **MAY** contain a list of *QIDs*, which are separated by separators (valid separators are `,`, `
+3. Work with Metadata in Markdown 
+---------------------------------
 
-> An algorithm **SHOULD** be implemented to allow match *QID* without overload section.
-> For example, user can write `Equals` to match one of the overload function of Equals.
+### 3.1 YAML Front Matter
 
-> When designing *QID* for your own languages, it's **RECOMMENDED** to always include overload separators if the type of item supports overload,
-> no matter the *item* itself is overloaded or not. For example, use `ToString()` instead of `ToString` even it's not overloaded.
+### 3.2 Reference Items in Markdown
 
-### Whitespaces
-*QID* can contain whitespace, but they will be ignored when comparing equality.
+We introduce a new markdown syntax to represent *item* reference:
 
-For example, 
-`Equals (string, string)` and `Equals(string,string)` are same *QID*.
+If a string starts with `@`, and followed by a string enclosed by curly braces `{}`, it will be treated as an *item* reference. The string inside `{}` is the *UID* of the *item*. Here is one example:
 
-### ID in C# 
+```markdown
+@{System.String}
+```
 
-#### Types
-1. Predefined types: `object`, `string`, `int`, etc.
-2. Simple types: `System.Exception`
-3. Generic types: ``System.Collections.Generic.IEnumerable`1``, ``System.Collections.Generic.Dictionary`2``
+*UID* can be enclosed by multiple curly braces, but the number of `{` and `}` should match, for example, `@{{System.String}}` is also a valid reference. By doing this, we can allow curly braces inside *UID*.
 
-#### Methods
+> Markdown processor **MAY** implement some algorithm to allow omit curly braces if *ID* is simple enough. For example, For reference like `@{int}`, we may also want to allow `@int`.
 
+When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using the standard link syntax of markdown:
 
-`System.String.Equals(System.String, System.String)`
-`String.Equals(String, String)`
+```markdown
+[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
+```
 
+Will be rendered to:
+[Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
 
-
-
-#### Combined IDs
-Combined ID is used to represent types like generic type instantiation.
-Theoretically these types doesn't really exist, so these IDs are used to reference multiple APIs at the same time.  
-For example:  
-``System.Collections.Generic.IEnumerable`1<string>``  
-``System.Collections.Generic.Dictionary`2<int, System.Exception>``
-
+Besides *UID*, we also allow reference item using *ID* and *alias*, in markdown processor, the following algorithm **SHOULD** be implemented to resolve references:
+1. Check whether the reference matches any *identifier* of current *item*'s children.
+2. Check whether the reference matches any *alias* of current *item*'s children.
+3. Check whether the reference matches any *identifier* of current *item*'s silbings
+4. Check whether the reference matches any *alias* of current *item*'s silbings
+5. Check whether the reference matches a *UID*.
+6. Check whether the reference matches a *global alias*.
 
 [1]: https://www.ietf.org/rfc/rfc2119.txt
 [2]: http://www.yaml.org/
