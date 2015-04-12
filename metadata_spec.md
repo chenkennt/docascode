@@ -207,7 +207,29 @@ The following *properties* **SHALL NOT** be overridden in language context: uid,
 3. Work with Metadata in Markdown 
 ---------------------------------
 
-### 3.1 YAML Front Matter
+### 3.1 YAML Metadata Section
+
+In markdown file, you can also define *items* using the same metadata syntax. The metadata definition **MUST** be in YAML format and enclosed by triple-dash lines (`---`).
+Here is an example:
+
+```markdown
+---
+uid: System.String
+summary: String class
+---
+
+This is a **string** class.
+```
+
+You can multiple YAML sections inside a single markdown file, but in a single YAML section, there **MUST** be only one *item*.
+
+The YAML metadata section does not have to contain all *properties*. The only *property* that **MUST** appear is "uid", which is used to match the same *item* in metadata file.
+
+The most common scenario for using YAML section is to specify which *item* does the markdown doc belong to. But you can also overwrite *item* *property* by defining one with the same name in YAML section. In the above example, the *property* summary will overwrite the same one in metadata.
+
+Same as language context, the following *properties* **SHALL NOT** appear  in language context: uid, id, alias, children, parent.
+
+You **SHALL NOT** define new *item* in markdown.
 
 ### 3.2 Reference Items in Markdown
 
@@ -235,8 +257,8 @@ Will be rendered to:
 Besides *UID*, we also allow reference item using *ID* and *alias*, in markdown processor, the following algorithm **SHOULD** be implemented to resolve references:
 1. Check whether the reference matches any *identifier* of current *item*'s children.
 2. Check whether the reference matches any *alias* of current *item*'s children.
-3. Check whether the reference matches any *identifier* of current *item*'s silbings
-4. Check whether the reference matches any *alias* of current *item*'s silbings
+3. Check whether the reference matches any *identifier* of current *item*'s silbings.
+4. Check whether the reference matches any *alias* of current *item*'s silbings.
 5. Check whether the reference matches a *UID*.
 6. Check whether the reference matches a *global alias*.
 
