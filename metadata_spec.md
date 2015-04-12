@@ -57,6 +57,7 @@ Format(System.IFormatProvider,System.String,System.Object,System.Object)
 We can create short alias for *items* so that they can be referenced easily.
 
 Alias is same as *ID*, except:
+
 1. It doesn't have to be unique.
 2. One *item* can have multiple aliases.
 
@@ -259,6 +260,7 @@ Will be rendered to:
 [Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
 
 Besides *UID*, we also allow reference item using *ID* and *alias*, in markdown processor, the following algorithm **SHOULD** be implemented to resolve references:
+
 1. Check whether the reference matches any *identifier* of current *item*'s children.
 2. Check whether the reference matches any *alias* of current *item*'s children.
 3. Check whether the reference matches any *identifier* of current *item*'s silbings.
