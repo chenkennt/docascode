@@ -6,7 +6,10 @@ Doc-as-Code: Metadata Format Specification
 
 ### 0.1 Goals and Non-goals
 
-1. This document
+1. The goal of this document is to define a general format to describe language metadata for programming languages.
+2. The language metadata is designed to be language agnostic and support multiple programming language in a single metadata file.
+3. The main user scenario for language metadata is to generate reference documentation, so this document will discuss how to optimize metadata format for documentation rendering.
+4. This document does **NOT** discuss details of metadata format implementation of a specific programming language.
 
 ### 0.2 Terminology
 
@@ -19,7 +22,7 @@ Words in *italic* imply they are terms defined in an earlier section of this doc
 
 ### 1.1 Items
 
-Item is the basic unit of metadata format. From documentation perspective, each item represents a "section" in the documentation. This "section" is the minimum unit that you can cross reference to, or customize its layout and content.
+Item is the basic unit of metadata format. From documentation perspective, each item represents a "section" in the reference documentation. This "section" is the minimum unit that you can cross reference to, or customize its layout and content.
 
 > When implementing the metadata format for your own language, you can decide which elements are items. For example, usually namespaces, classes, methods are items. But you can also make smaller elements like parameters to be item if you want them to be referencable and customizable.
 
@@ -29,11 +32,11 @@ Items can be hierarchical. One item can have other items as children. For exampl
 
 Each *item* has an identifier (ID) which is unique under it's parent.
 
-As we're targeting to support multiple languages, there is no special restrictions about which characters are allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's not **RECOMMENDED** to have whitespaces in identifier. Markdown processor **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)
+As we're targeting to support multiple languages, there is no  restrictions of which characters are not allowed in identifiers. But to make identifier easier to be recognized and resolved in markdown, it's not **RECOMMENDED** to have whitespaces in identifiers. Markdown processor **MAY** implement some algorithm to tolerate whitespaces in handwritten markdown. (Leading and trailing spaces **MUST** be removed from identifier.)
 
 Identifier **MUST** be treated as case-sensitive when comparing equality.
 
-Each *item* has a unique identifier (UID) which is globally unique. UID is defined as follows:
+Each *item* has a unique identifier (UID) which is globally unique. A UID is defined as follows:
 1. If an *item* does not have parent, its UID is its ID.
 2. Otherwise its UID is the combination of the UID of its parent, a separator and the ID of the *item* itself.
 
@@ -41,7 +44,7 @@ Valid separators are `.`, `:`, `/` and `\`.
 
 For example, for a class `String` under namespace `System`, its ID is `String` and UID is `System.String`.
 
-> Given the above definition, an *item*'s UID **MUST** starts with the UID of its parent (and any ancestor) and ends with the ID of itself. This is useful to quickly determine whether an *item* is under another item.
+> Given the above definition, an *item*'s UID **MUST** starts with the UID of its parent (and any of its ancestor) and ends with the ID of itself. This is useful to quickly determine whether an *item* is under another *item*.
 
 ### 1.3 Alias
 
@@ -75,7 +78,7 @@ A metadata file consists of two parts, an "item" section and a "reference" secti
 
 ### 2.3 Item Section
 
-Though *items* can be hierarchical, they are be flat in item section. Instead, each *item* has an "children" property indicates its children and a "parent" property indicates its parent.
+Though *items* can be hierarchical, they are flat in item section. Instead, each *item* has an "children" *property* indicates its children and a "parent" *property* indicates its parent.
 
 An *item* object has some basic properties:
 
@@ -83,7 +86,7 @@ Property   | Description
 -----------|-------------------------------------------------
 uid        | **REQUIRED**. The *unique identifier* of the *item*.
 children   | **OPTIONAL**. A list of *UIDs* of the *item*'s children. Can be omitted if there is no children.
-parent     | **OPTIONAL**. The *UID* of the parent of the *item*. If omitted, parser will try to figure out its parent from the children information of other *items* within the same file.
+parent     | **OPTIONAL**. The *UID* of the *item*'s parent. If omitted, metadata parser will try to figure out its parent from the children information of other *items* within the same file.
 
 Here is an example of a YAML format metadata file for C# Object class:
 
@@ -123,7 +126,7 @@ references:
 ...
 ```
 
-> *Items* **SHOULD** be organized based on how they will be displayed in documentation. For example, if you want all members of a class displayed in a single page, put all of them in a single metadata file.
+> *Items* **SHOULD** be organized based on how they will be displayed in documentation. For example, if you want all members of a class be displayed in a single page, put all members in a single metadata file.
 
 ### 2.3 Item Object
 In additional to the *properties* listed in last section, *item object* also has some **OPTIONAL** *properties*:
@@ -135,8 +138,8 @@ alias    | A list of *aliases* of the *item*.
 name     | The display name of the *item*.
 fullName | The full display name of the *item*. In programming languages, it's usually the full qualified name.
 type     | The type of the *item*, like class, method, etc.
-url      | If it's a relative url, it points to another metadata file that defines the *item*. If it's an absolute url, it means the *item* is coming from an external library, and the url is the documentation page of this *item*. If omitted, the url is the location of the current file.
-source   | The source code information of the *item*. It's an object which contains following properties:<br>1. repo: the remote git repository of the source code.<br>2. branch: the branch of the source code.<br>3. revision: the git revision of the source code.<br>4. path: the path of the source code file where the *item* is defined.<br>5. startLine: the start line of the *item* definition.<br>6. endLine: the end line of the *item* definition.
+url      | If it's a relative url, it's another metadata file that defines the *item*. If it's an absolute url, it means the *item* is coming from an external library, and the url is the documentation page of this *item*. If omitted, the url is the location of the current file.
+source   | The source code information of the *item*. It's an object that contains following *properties*:<br>1. repo: the remote git repository of the source code.<br>2. branch: the branch of the source code.<br>3. revision: the git revision of the source code.<br>4. path: the path to the source code file where the *item* is defined.<br>5. startLine: the start line of the *item* definition.<br>6. endLine: the end line of the *item* definition.
 
 Here is an example of a C# Dictionary class:
 
@@ -164,11 +167,11 @@ Besides the predefined *properties*, *item* can have its own *properties*. One r
 
 ### 2.5 Reference Section
 
-Reference section also contains a list of *items*, but these *items* only serve as the references by *items* in *item section* and won't show up as section in documentation. Also Reference *item* doesn't need to have full *properties*, it just contains some necessary information as a reference, for example, name or url.
+Reference section also contains a list of *items*, these *items* serve as the references by *items* in *item section* and won't show up in documentation. Also reference *item* doesn't need to have full *properties*, it just contains necessary information needed by its referrer, for example, name or url.
 
 In metadata file, all *items* **MUST** be referenced by *UID*.
 
-> It's **RECOMMENDED** to include all referenced *items* in the same file in reference section. This makes the file self contained and easy to render at runtime.
+> It's **RECOMMENDED** to include all referenced *items* in reference section. This makes the file self contained and easy to render at runtime.
 
 > Many programming languages has the concept of "template instantiation". For example, in C#, you can create a new type `List<int>` from `List<T>` with argument `int`. You can create a reference for "template instances". For example, for a class inherited from `List<int>`:
 
@@ -189,9 +192,9 @@ references:
 ```
 
 ### 2.6 Multiple Language Support
-There may be a need that an *item* supports multiple languages. For example, in .NET, a class can be used in C#, VB, managed C++ and F#. Different languages may have differences in *properties*. For example, a list of string is displayed as `List<string>` int C#, while `List(Of string)` in VB.
+There may be a need that an *item* supports multiple languages. For example, in .NET, a class can be used in C#, VB, managed C++ and F#. Different languages may have differences in *properties*. For example, a list of string is displayed as `List<string>` in C#, while `List(Of string)` in VB.
 
-To support this scenario, we introduced a concept of language context to allow define different *property* values in different languages.
+To support this scenario, we introduce a concept of language context to allow define different *property* values in different languages.
 
 If a *property* name is in the form of `property_name.language_name`, it defines the value of `property_name` under `language_name`. For example:
 
@@ -201,7 +204,7 @@ If a *property* name is in the form of `property_name.language_name`, it defines
   name.vb: Dictionary(Of TKey, TValue)
 ```
 
-This means the name of the dictionary is `Dictionary<TKey, TValue>` in C# and `Dictionary(Of TKey, TValue)` in VB.
+This means the name of dictionary is `Dictionary<TKey, TValue>` in C# and `Dictionary(Of TKey, TValue)` in VB.
 
 The following *properties* **SHALL NOT** be overridden in language context: uid, id, alias, children, parent.
 
@@ -226,9 +229,9 @@ You can multiple YAML sections inside a single markdown file, but in a single YA
 
 The YAML metadata section does not have to contain all *properties*. The only *property* that **MUST** appear is "uid", which is used to match the same *item* in metadata file.
 
-The most common scenario for using YAML section is to specify which *item* does the markdown doc belong to. But you can also overwrite *item* *property* by defining one with the same name in YAML section. In the above example, the *property* summary will overwrite the same one in metadata.
+The most common scenario for using YAML section is to specify which *item* the markdown doc belongs to. But you can also override *item* *property* by defining one with the same name in YAML section. In the above example, the *property* "summary" will override the same one in metadata.
 
-Same as language context, the following *properties* **SHALL NOT** appear  in language context: uid, id, alias, children, parent.
+Same as language context, the following *properties* **SHALL NOT** be overridden: uid, id, alias, children, parent.
 
 You **SHALL NOT** define new *item* in markdown.
 
@@ -246,7 +249,7 @@ If a string starts with `@`, and followed by a string enclosed by curly braces `
 
 > Markdown processor **MAY** implement some algorithm to allow omit curly braces if *ID* is simple enough. For example, For reference like `@{int}`, we may also want to allow `@int`.
 
-When rendering reference in markdown, they will be expanded into a link with the *item*'s name (will be defined in a later section) as link title. You can also customize the link title using the standard link syntax of markdown:
+When rendering reference in markdown, they will be expanded into a link with the *item*'s name as link title. You can also customize the link title using the standard syntax of markdown:
 
 ```markdown
 [Dictionary](@{System.Collections.Generic.Dictionary`2})<[String](@{System.String}), [String](@{System.String})>
