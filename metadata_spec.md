@@ -6,8 +6,9 @@ Doc-as-Code: Metadata Format Specification
 
 ### 0.1 Goals and Non-goals
 
-### 0.2 Terminology
+1. This document
 
+### 0.2 Terminology
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**,  **MAY**, and **OPTIONAL** in this document are to be interpreted as described in [RFC 2119][1].
 
@@ -66,7 +67,7 @@ We can easily get a "global" alias for an *item* by replacing the *ID* part of i
 
 ### 2.1 File Format
 
-You can use any file format that can represent structural data to store metadata. But we recommend to use [YAML][2] or [JSON][3]. In this specification, we use YAML in examples, but all YAML can be converted to JSON easily.
+You can use any file format that can represent structural data to store metadata. But we recommend to use [YAML][2] or [JSON][3]. In this document, we use YAML in examples, but all YAML can be converted to JSON easily.
 
 ### 2.2 File Layout
 
