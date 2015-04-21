@@ -1,0 +1,34 @@
+Doc-as-Code: Metadata Format for .NET Languages
+===============================================
+
+0. Introduction
+---------------
+
+### 0.1 Goal and Non-goals
+
+### 0.2 Terminology
+
+1. Items
+--------------
+
+The following .NET elements are defined as *items* in metadata:
+
+1. Namespaces
+2. Types, including class, struct, interface, enum, delegate
+3. Type members, including field, property, method, event
+
+Other elements like parameters, generic parameters are not standalone *items*, they're part of other *items*.
+
+2. Types
+--------
+
+### 2.1 Identifier
+We use name of a .NET type as its *identifier* and its full name as its *unique identifier*. Here're some examples:
+
+UID           |ID
+--------------|-------
+System.Object | Object
+System.String | String
+
+3. Generic Types
+----------------
