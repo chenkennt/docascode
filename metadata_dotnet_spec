@@ -19,16 +19,17 @@ The following .NET elements are defined as *items* in metadata:
 
 Other elements like parameters, generic parameters are not standalone *items*, they're part of other *items*.
 
-2. Types
---------
+2. Identifiers
+--------------
 
-### 2.1 Identifier
-We use name of a .NET type as its *identifier* and its full name as its *unique identifier*. Here're some examples:
+### 2.1 Namespaces
 
-UID           |ID
---------------|-------
-System.Object | Object
-System.String | String
+For a namespace, its *ID* is its name and its *UID* is its full name.
 
-3. Generic Types
-----------------
+> Example 2.1
+> ```csharp
+> namespace System
+> {
+> }
+> ```
+
