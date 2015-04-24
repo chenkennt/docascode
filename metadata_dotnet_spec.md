@@ -27,9 +27,17 @@ Other elements like parameters, generic parameters are not standalone *items*, t
 For a namespace, its *ID* is its name and its *UID* is its full name.
 
 > Example 2.1
+> C#:
 > ```csharp
 > namespace System
 > {
+>     namespace Linq
+>     {
+>     }
 > }
 > ```
-
+> YAML:
+> ```yaml
+> uid: System.Linq
+> id: Linq
+> ```
